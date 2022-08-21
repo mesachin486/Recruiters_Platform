@@ -1,0 +1,204 @@
+ {% extends 'base.html' %} 
+
+{% block content %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item active" aria-current="page">Candidates List</li>
+    </ol>
+  </nav>
+  <div class ="col-md-12 subhead nopadding" >
+  <div class='col-md-6 nopadding'>
+  <h2 class="">Candidates List</h2>
+  </div>
+
+<div class='col-md-6 nopadding' style="text-align: right;">  
+<span type="button" title="detail" class="btn btn-primary add_candi open-modal2"
+  data-target='myModal2' style="cursor: pointer;">Add Candidate
+  </span>
+</div>
+  </div>
+  {% comment %} <a href="{% url 'teachers:quiz_add' %}" class="btn btn-primary mb-3" role="button">Add quiz</a> {% endcomment %}
+  <div class="card">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Candidate ID</th>
+          <th>Name</th>
+          <th>Gender</th>
+          <th>Email ID</th>
+          <th>Status</th>
+          <th>Update Status</th>
+          <th>Detail</th>
+          <th>Resume</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for details in data %}
+          <tr>
+            <td class="align-middle">{{ details.id }}<p/td>
+            <td class="align-middle">{{ details.name }}</td>
+            <td class="align-middle">{{ details.gender }}</td>
+            <td class="align-middle">{{ details.email }}</td>
+            <td class="align-middle">{{ details.status }}</td>
+            {% if details.status == "Applied" %}
+            <th>
+              <form method="POST" action="{% url 'change_status' details.id %}">
+                {% csrf_token %}
+              <select name="Status" id="Status">
+              <option value="">Select</option>
+              <option value="Accepted">Accepted</option>
+              <option value="Rejected">Rejected</otion>
+            </select>
+            <input type="Submit" value="Save">
+          </form>
+          </th>
+            
+            {%else%}
+            <th>Can't Change</th>
+            {% endif %}
+            <td class="align-middle">
+              <span type="button" data-id='{{ details.id }}' title="detail" class="btn btn-primary detail open-modal"
+              data-target='myModal' style="cursor: pointer;">View
+              </span>
+            </td>
+            <td>
+              {% if details.resume %}
+              <a href="/media/{{details.id}}.pdf" class="btn btn-primary">Download</a>
+              {% else%}
+              <form method="POST" action="{% url 'upload_resume' details.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type='file' name='resume'>
+                <input type="submit" >
+              </form>
+              {% endif %}
+            </td> 
+        {% empty %}
+          <tr>
+            <td class="bg-light text-center font-italic" colspan="5">You haven't created any Candidate yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+
+
+
+
+  <div class="modal_bid">
+    <div class="modal fade" id="myModal" role="dialog">
+      <div class="modal-dialog modal-sm modal-lg">
+        <div class="modal-content">
+          <form action='submit' method="post" novalidate>
+          {% csrf_token %}
+  
+          <div class="modal-header">  
+            <h4 class="modal-title">Candidate Detail</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+  
+          <div class="modal-body" id='biddetail'>
+            
+          </div>
+  
+          <div class="modal-footer">
+            
+            <button type="button" class="btn btn-success" data-dismiss="modal">Close</button>
+          </div>
+  
+        </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+
+
+
+
+
+
+  <div class="modal_add_candi">
+    <div class="modal fade" id="myModal2" role="dialog">
+      <div class="modal-dialog modal-sm modal-lg">
+        <div class="modal-content">
+
+          <form action="{% url 'add_candidate'%}" method='POST' >
+          {% csrf_token %}
+          <div class="modal-header">  
+            <h4 class="modal-title">Add Candidate</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+  
+          <div class="modal-body" id='candiform'>
+            
+          </div>
+  
+          <div class="modal-footer">
+            
+            <input type="Submit" class="btn btn-success" >
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+          
+        </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+  
+  
+  <script>
+    $(document).ready(function () {
+    $(".detail").click(function () {
+      var modalDiv = $("#modal_bid");
+      var id = $(this).data(id);
+      var csrftoken = '{{ csrf_token }}';
+      
+      $.ajax({
+        type: "POST",
+        url: "{% url 'candidate_detail' %}",
+        headers: { 'X-CSRFToken': csrftoken },
+        data: id,
+        
+        success: function (data) {
+          $("#biddetail").empty()
+          $("#biddetail").append(data)
+          $("#myModal").modal();
+          console.log('successfull');
+        }
+      });
+    });
+  
+  });
+
+
+
+  $(document).ready(function () {
+    $(".add_candi").click(function () {
+      var modalDiv = $("#modal_add_candi");
+      var id = $(this).data(id);
+      var csrftoken = '{{ csrf_token }}';
+      
+      $.ajax({
+        type: "POST",
+        url: "{% url 'candidate_form' %}",
+        headers: { 'X-CSRFToken': csrftoken },
+        data: id,
+        
+        success: function (data) {
+          $("#candiform").empty()
+          $("#candiform").append(data)
+          $("#myModal2").modal();
+          console.log('successfull');
+        }
+      });
+    });
+  
+  });
+  </script>
+{% endblock %}
